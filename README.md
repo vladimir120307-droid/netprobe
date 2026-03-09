@@ -400,3 +400,16 @@ See [LICENSE](LICENSE) for details.
 
 - GitHub: [@vladimir120307-droid](https://github.com/vladimir120307-droid)
 - Email: Vladimir120307@gmail.com
+
+## Contributing
+
+Contributions are welcome\! Please open an issue or submit a pull request.
+
+1. Fork the repository
+2. Create your feature branch (\)
+3. Commit your changes (\On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean)
+4. Push to the branch (\)
+5. Open a Pull Request
