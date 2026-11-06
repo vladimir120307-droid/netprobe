@@ -3,6 +3,7 @@ package scanner
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -164,8 +165,7 @@ func parseVersion(banner string, port int) string {
 	if strings.HasPrefix(banner, "220") {
 		clean := strings.TrimPrefix(banner, "220 ")
 		clean = strings.TrimPrefix(clean, "220-")
-		if idx := strings.Index(clean, "
-"); idx > 0 {
+		if idx := strings.Index(clean, "\n"); idx > 0 {
 			clean = clean[:idx]
 		}
 		return strings.TrimSpace(clean)
@@ -180,8 +180,7 @@ func parseVersion(banner string, port int) string {
 
 	// HTTP banner detection
 	if strings.HasPrefix(banner, "HTTP/") {
-		lines := strings.Split(banner, "
-")
+		lines := strings.Split(banner, "\n")
 		for _, line := range lines {
 			if strings.HasPrefix(strings.TrimSpace(line), "Server:") {
 				return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "Server:"))
@@ -205,8 +204,7 @@ func parseVersion(banner string, port int) string {
 	}
 
 	// Generic: return first line truncated
-	if idx := strings.IndexAny(banner, "
-"); idx > 0 {
+	if idx := strings.IndexAny(banner, "\r\n"); idx > 0 {
 		if idx > 60 {
 			return banner[:60] + "..."
 		}
@@ -249,7 +247,7 @@ func detectServiceFromBanner(banner string) string {
 // the response for analysis. Used by DetectService for services that do not
 // send banners automatically.
 func ProbeService(target string, port int, timeout time.Duration) ([]byte, error) {
-	addr := fmt.Sprintf("%s:%d", target, port)
+	addr := net.JoinHostPort(target, strconv.Itoa(port))
 	conn, err := net.DialTimeout("tcp", addr, timeout)
 	if err != nil {
 		return nil, err
@@ -257,10 +255,7 @@ func ProbeService(target string, port int, timeout time.Duration) ([]byte, error
 	defer conn.Close()
 
 	// Send an HTTP probe
-	httpProbe := fmt.Sprintf("GET / HTTP/1.0
-Host: %s
-
-", target)
+	httpProbe := fmt.Sprintf("GET / HTTP/1.0\r\nHost: %s\r\n\r\n", target)
 	conn.SetWriteDeadline(time.Now().Add(timeout))
 	_, err = conn.Write([]byte(httpProbe))
 	if err != nil {

@@ -46,8 +46,7 @@ func runPing(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Resolved %s -> %s
-", host, resolvedIP)
+		fmt.Fprintf(os.Stderr, "Resolved %s -> %s\n", host, resolvedIP)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(),
@@ -62,17 +61,13 @@ func runPing(cmd *cobra.Command, args []string) error {
 		Timeout:  globalTimeout,
 	}
 
-	fmt.Printf("PING %s (%s) %d bytes of data
-
-", host, resolvedIP, pingSize)
+	fmt.Printf("PING %s (%s) %d bytes of data\n\n", host, resolvedIP, pingSize)
 
 	results, err := netping.Run(ctx, cfg, func(r netping.Result) {
 		if r.Err != nil {
-			fmt.Printf("From %s: seq=%d error: %v
-", resolvedIP, r.Seq, r.Err)
+			fmt.Printf("From %s: seq=%d error: %v\n", resolvedIP, r.Seq, r.Err)
 		} else {
-			fmt.Printf("%d bytes from %s: seq=%d ttl=%d time=%.2f ms
-",
+			fmt.Printf("%d bytes from %s: seq=%d ttl=%d time=%.2f ms\n",
 				pingSize, resolvedIP, r.Seq, r.TTL,
 				float64(r.RTT.Microseconds())/1000.0)
 		}

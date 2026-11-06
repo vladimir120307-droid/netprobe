@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -129,7 +130,7 @@ func CertExpiryStatus(daysLeft int) string {
 // CheckTLSCert connects to a host and checks its TLS certificate. Useful for
 // standalone certificate validation without performing a full HTTP request.
 func CheckTLSCert(host string, port int, timeout time.Duration) (*TLSInfo, error) {
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	dialer := &net.Dialer{Timeout: timeout}
 	conn, err := tls.DialWithDialer(
 		dialer,

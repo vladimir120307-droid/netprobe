@@ -326,7 +326,9 @@ netprobe/
 │   │   ├── prober.go        # HTTP client with timing hooks
 │   │   └── tls.go           # TLS certificate extraction
 │   ├── trace/               # Traceroute engine
-│   │   └── traceroute.go    # TTL-based route tracing
+│   │   ├── traceroute.go    # TTL-based route tracing
+│   │   ├── ttl_unix.go      # Socket TTL on Linux and macOS
+│   │   └── ttl_windows.go   # Socket TTL on Windows
 │   ├── discovery/           # Network discovery
 │   │   └── subnet.go        # CIDR parsing and host discovery
 │   └── output/              # Output formatting

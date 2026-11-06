@@ -52,8 +52,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Resolved %s -> %s
-", target, resolvedIP)
+		fmt.Fprintf(os.Stderr, "Resolved %s -> %s\n", target, resolvedIP)
 	}
 
 	var ports []int
@@ -67,8 +66,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Scanning %d ports on %s (%s) with %d workers
-",
+		fmt.Fprintf(os.Stderr, "Scanning %d ports on %s (%s) with %d workers\n",
 			len(ports), target, scanProtocol, scanWorkers)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -88,7 +89,7 @@ func pingOnce(host string, seq int, size int, timeout time.Duration) Result {
 	// TCP connect fallback - measures RTT via TCP handshake
 	ports := []int{80, 443, 22}
 	for _, port := range ports {
-		addr := fmt.Sprintf("%s:%d", host, port)
+		addr := net.JoinHostPort(host, strconv.Itoa(port))
 		start := time.Now()
 
 		conn, err := net.DialTimeout("tcp", addr, timeout)

@@ -7,6 +7,7 @@ import (
 	"math"
 	"net"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -194,7 +195,7 @@ func probeHost(ctx context.Context, ip string, timeout time.Duration) (Host, boo
 		default:
 		}
 
-		addr := fmt.Sprintf("%s:%d", ip, port)
+		addr := net.JoinHostPort(ip, strconv.Itoa(port))
 		start := time.Now()
 
 		conn, err := net.DialTimeout("tcp", addr, timeout)

@@ -47,8 +47,7 @@ func runTrace(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Resolved %s -> %s
-", target, resolvedIP)
+		fmt.Fprintf(os.Stderr, "Resolved %s -> %s\n", target, resolvedIP)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(),
@@ -63,9 +62,7 @@ func runTrace(cmd *cobra.Command, args []string) error {
 		Timeout:  globalTimeout,
 	}
 
-	fmt.Printf("TRACEROUTE to %s (%s), max %d hops
-
-", target, resolvedIP, traceMaxHops)
+	fmt.Printf("TRACEROUTE to %s (%s), max %d hops\n\n", target, resolvedIP, traceMaxHops)
 
 	hops, err := trace.Run(ctx, cfg)
 	if err != nil {

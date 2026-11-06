@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -25,7 +26,7 @@ func ScanTCP(ctx context.Context, target string, port int, timeout interface{}) 
 		dialTimeout = 5 * time.Second
 	}
 
-	addr := fmt.Sprintf("%s:%d", target, port)
+	addr := net.JoinHostPort(target, strconv.Itoa(port))
 
 	dialer := net.Dialer{
 		Timeout: dialTimeout,
@@ -68,7 +69,7 @@ func ScanTCPRange(ctx context.Context, target string, startPort, endPort int, ti
 // received. Common services like SSH, FTP, and SMTP send banners immediately
 // after connection.
 func TCPBannerGrab(target string, port int, timeout time.Duration) (string, error) {
-	addr := fmt.Sprintf("%s:%d", target, port)
+	addr := net.JoinHostPort(target, strconv.Itoa(port))
 	conn, err := net.DialTimeout("tcp", addr, timeout)
 	if err != nil {
 		return "", fmt.Errorf("connection failed: %w", err)
@@ -89,8 +90,7 @@ func TCPBannerGrab(target string, port int, timeout time.Duration) (string, erro
 		defer conn2.Close()
 
 		conn2.SetWriteDeadline(time.Now().Add(timeout))
-		conn2.Write([]byte("
-"))
+		conn2.Write([]byte("\r\n"))
 		conn2.SetReadDeadline(time.Now().Add(timeout))
 
 		n2, err3 := conn2.Read(buf)
@@ -111,8 +111,7 @@ func sanitizeBanner(s string) string {
 		c := s[i]
 		if c >= 32 && c < 127 {
 			clean = append(clean, c)
-		} else if c == '
-' || c == '' || c == '	' {
+		} else if c == '\n' || c == '\r' || c == '\t' {
 			clean = append(clean, ' ')
 		}
 	}

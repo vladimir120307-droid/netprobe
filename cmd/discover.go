@@ -44,14 +44,11 @@ func runDiscover(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Subnet: %s, Network: %s, Broadcast: %s, Hosts: %d
-",
+		fmt.Fprintf(os.Stderr, "Subnet: %s, Network: %s, Broadcast: %s, Hosts: %d\n",
 			cidr, subnetInfo.Network, subnetInfo.Broadcast, subnetInfo.HostCount)
 	}
 
-	fmt.Printf("DISCOVERING HOSTS ON %s
-
-", cidr)
+	fmt.Printf("DISCOVERING HOSTS ON %s\n\n", cidr)
 
 	ctx, cancel := context.WithTimeout(context.Background(),
 		globalTimeout+time.Duration(subnetInfo.HostCount/discoverWorkers+1)*globalTimeout)

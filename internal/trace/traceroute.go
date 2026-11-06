@@ -122,7 +122,7 @@ func sendProbe(ctx context.Context, target string, ttl int, timeout time.Duratio
 // tcpProbe performs a TCP-based traceroute probe by attempting a SYN connection
 // with a specific TTL. This works through many firewalls that block UDP/ICMP.
 func tcpProbe(ctx context.Context, target string, ttl int, timeout time.Duration) (string, time.Duration, bool, error) {
-	addr := fmt.Sprintf("%s:%d", target, 80)
+	addr := net.JoinHostPort(target, "80")
 	start := time.Now()
 
 	dialer := net.Dialer{
@@ -155,7 +155,7 @@ func tcpProbe(ctx context.Context, target string, ttl int, timeout time.Duration
 func setTTLControl(ttl int) func(network, address string, c syscall.RawConn) error {
 	return func(network, address string, c syscall.RawConn) error {
 		return c.Control(func(fd uintptr) {
-			syscall.SetsockoptInt(syscall.Handle(fd), syscall.IPPROTO_IP, syscall.IP_TTL, ttl)
+			setSocketTTL(fd, ttl)
 		})
 	}
 }
