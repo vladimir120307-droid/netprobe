@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
+
+// dialConn is a variable so tests can answer with an in-memory connection.
+var dialConn = net.DialTimeout
 
 // ScanTCP performs a TCP connect scan on the given target and port. It attempts
 // to establish a full TCP connection within the specified timeout. If the
@@ -70,7 +74,7 @@ func ScanTCPRange(ctx context.Context, target string, startPort, endPort int, ti
 // after connection.
 func TCPBannerGrab(target string, port int, timeout time.Duration) (string, error) {
 	addr := net.JoinHostPort(target, strconv.Itoa(port))
-	conn, err := net.DialTimeout("tcp", addr, timeout)
+	conn, err := dialConn("tcp", addr, timeout)
 	if err != nil {
 		return "", fmt.Errorf("connection failed: %w", err)
 	}
@@ -83,7 +87,7 @@ func TCPBannerGrab(target string, port int, timeout time.Duration) (string, erro
 	if err != nil {
 		// Many services require us to send data first. Try sending
 		// a generic probe and reading the response.
-		conn2, err2 := net.DialTimeout("tcp", addr, timeout)
+		conn2, err2 := dialConn("tcp", addr, timeout)
 		if err2 != nil {
 			return "", fmt.Errorf("banner grab failed: %w", err)
 		}
@@ -97,10 +101,10 @@ func TCPBannerGrab(target string, port int, timeout time.Duration) (string, erro
 		if err3 != nil {
 			return "", fmt.Errorf("banner grab failed after probe: %w", err3)
 		}
-		return sanitizeBanner(string(buf[:n2])), nil
+		return string(buf[:n2]), nil
 	}
 
-	return sanitizeBanner(string(buf[:n])), nil
+	return string(buf[:n]), nil
 }
 
 // sanitizeBanner cleans up a raw banner string by removing control characters
@@ -115,7 +119,7 @@ func sanitizeBanner(s string) string {
 			clean = append(clean, ' ')
 		}
 	}
-	return string(clean)
+	return strings.TrimSpace(string(clean))
 }
 
 // isTimeoutError checks whether an error indicates a network timeout, which

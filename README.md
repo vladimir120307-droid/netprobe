@@ -2,9 +2,6 @@
 
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue.svg)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/vladimir120307-droid/netprobe/build.yml?branch=main)](https://github.com/vladimir120307-droid/netprobe/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/vladimir120307-droid/netprobe)](https://goreportcard.com/report/github.com/vladimir120307-droid/netprobe)
-[![Release](https://img.shields.io/github/v/release/vladimir120307-droid/netprobe)](https://github.com/vladimir120307-droid/netprobe/releases)
 
 **Fast, concurrent network diagnostics CLI tool.** Port scanning, latency testing, DNS lookup, HTTP probing, traceroute, and subnet discovery -- all from a single binary.
 
@@ -402,16 +399,3 @@ See [LICENSE](LICENSE) for details.
 
 - GitHub: [@vladimir120307-droid](https://github.com/vladimir120307-droid)
 - Email: Vladimir120307@gmail.com
-
-## Contributing
-
-Contributions are welcome\! Please open an issue or submit a pull request.
-
-1. Fork the repository
-2. Create your feature branch (\)
-3. Commit your changes (\On branch master
-Your branch is up to date with 'origin/master'.
-
-nothing to commit, working tree clean)
-4. Push to the branch (\)
-5. Open a Pull Request

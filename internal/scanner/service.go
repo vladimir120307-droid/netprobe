@@ -132,7 +132,12 @@ func DetectService(target string, port int, protocol string) (service string, ve
 	timeout := 3 * time.Second
 	banner, err := TCPBannerGrab(target, port, timeout)
 	if err != nil {
-		return service, ""
+		// HTTP servers stay silent until they get a real request.
+		resp, err := ProbeService(target, port, timeout)
+		if err != nil || !strings.HasPrefix(string(resp), "HTTP/") {
+			return service, ""
+		}
+		banner = string(resp)
 	}
 
 	if banner == "" {
@@ -140,9 +145,12 @@ func DetectService(target string, port int, protocol string) (service string, ve
 	}
 
 	// Parse common banner formats to extract version information
-	version = parseVersion(banner, port)
+	version = sanitizeBanner(parseVersion(banner, port))
 	if detectedSvc := detectServiceFromBanner(banner); detectedSvc != "" {
-		service = detectedSvc
+		// An HTTP reply must not hide a more specific name such as https.
+		if detectedSvc != "http" || !strings.HasPrefix(service, "http") {
+			service = detectedSvc
+		}
 	}
 
 	return service, version
@@ -151,31 +159,36 @@ func DetectService(target string, port int, protocol string) (service string, ve
 // parseVersion attempts to extract version information from a service banner
 // based on common banner format patterns.
 func parseVersion(banner string, port int) string {
+	// MySQL greeting: 4-byte packet header, protocol version 10, then the
+	// server version as a NUL-terminated string
+	if port == 3306 && len(banner) > 5 && banner[4] == 10 {
+		if end := strings.IndexByte(banner[5:], 0); end > 0 {
+			return "MySQL " + banner[5:5+end]
+		}
+	}
+
 	banner = strings.TrimSpace(banner)
 
 	// SSH banner: SSH-2.0-OpenSSH_8.9
 	if strings.HasPrefix(banner, "SSH-") {
-		parts := strings.SplitN(banner, "-", 3)
+		parts := strings.SplitN(firstLine(banner), "-", 3)
 		if len(parts) >= 3 {
 			return strings.Split(parts[2], " ")[0]
 		}
 	}
 
-	// FTP banner: 220 ProFTPD 1.3.6
 	if strings.HasPrefix(banner, "220") {
-		clean := strings.TrimPrefix(banner, "220 ")
-		clean = strings.TrimPrefix(clean, "220-")
-		if idx := strings.Index(clean, "\n"); idx > 0 {
-			clean = clean[:idx]
-		}
-		return strings.TrimSpace(clean)
-	}
+		line := firstLine(banner)
 
-	// SMTP banner: 220 mail.example.com ESMTP Postfix
-	if strings.Contains(banner, "ESMTP") || strings.Contains(banner, "SMTP") {
-		if idx := strings.Index(banner, "ESMTP"); idx >= 0 {
-			return strings.TrimSpace(banner[idx:])
+		// SMTP banner: 220 mail.example.com ESMTP Postfix
+		if idx := strings.Index(line, "ESMTP"); idx >= 0 {
+			return strings.TrimSpace(line[idx:])
 		}
+
+		// FTP banner: 220 ProFTPD 1.3.6
+		clean := strings.TrimPrefix(line, "220 ")
+		clean = strings.TrimPrefix(clean, "220-")
+		return strings.TrimSpace(clean)
 	}
 
 	// HTTP banner detection
@@ -186,16 +199,8 @@ func parseVersion(banner string, port int) string {
 				return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "Server:"))
 			}
 		}
-	}
-
-	// MySQL greeting
-	if port == 3306 && len(banner) > 5 {
-		// MySQL protocol version + version string
-		for i, c := range banner {
-			if c == 0 && i > 1 {
-				return "MySQL " + banner[1:i]
-			}
-		}
+		// A status line such as "HTTP/1.1 200 OK" is not a version
+		return ""
 	}
 
 	// Redis
@@ -216,6 +221,14 @@ func parseVersion(banner string, port int) string {
 	return banner
 }
 
+// firstLine returns s up to the first line break.
+func firstLine(s string) string {
+	if idx := strings.IndexAny(s, "\r\n"); idx >= 0 {
+		return s[:idx]
+	}
+	return s
+}
+
 // detectServiceFromBanner identifies the service type from banner content
 // when the port-based lookup is insufficient or returns a generic name.
 func detectServiceFromBanner(banner string) string {
@@ -223,12 +236,12 @@ func detectServiceFromBanner(banner string) string {
 	switch {
 	case strings.HasPrefix(lower, "ssh-"):
 		return "ssh"
+	case strings.HasPrefix(lower, "http/"):
+		return "http"
 	case strings.Contains(lower, "ftp"):
 		return "ftp"
 	case strings.Contains(lower, "smtp") || strings.Contains(lower, "esmtp"):
 		return "smtp"
-	case strings.HasPrefix(lower, "http/"):
-		return "http"
 	case strings.Contains(lower, "imap"):
 		return "imap"
 	case strings.Contains(lower, "pop3") || strings.HasPrefix(lower, "+ok"):
@@ -248,7 +261,7 @@ func detectServiceFromBanner(banner string) string {
 // send banners automatically.
 func ProbeService(target string, port int, timeout time.Duration) ([]byte, error) {
 	addr := net.JoinHostPort(target, strconv.Itoa(port))
-	conn, err := net.DialTimeout("tcp", addr, timeout)
+	conn, err := dialConn("tcp", addr, timeout)
 	if err != nil {
 		return nil, err
 	}

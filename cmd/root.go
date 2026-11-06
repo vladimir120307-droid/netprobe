@@ -25,6 +25,7 @@ func SetVersionInfo(version, commit, date string) {
 	appVersion = version
 	appCommit = commit
 	appDate = date
+	rootCmd.Version = version
 }
 
 var rootCmd = &cobra.Command{
@@ -67,8 +68,6 @@ func init() {
 	rootCmd.AddCommand(httpCmd)
 	rootCmd.AddCommand(traceCmd)
 	rootCmd.AddCommand(discoverCmd)
-
-	rootCmd.Version = appVersion
 }
 
 // Execute runs the root command tree. Called from main.
